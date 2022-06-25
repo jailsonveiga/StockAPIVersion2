@@ -2,11 +2,9 @@ package com.jay.stockapiv2.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
+@Entity
 public class Overview {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -43,7 +41,7 @@ public class Overview {
 
     @JsonProperty("Industry")
     @Column(name="industry", nullable = false)
-    private long industry;
+    private String industry;
 
     @JsonProperty("MarketCapitalization")
     @Column(name="market_cap", nullable = false)
@@ -61,4 +59,74 @@ public class Overview {
     @Column(name="dividend_date", nullable = false)
     private String dividendDate;
 
+    public long getId() {
+        return Id;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public String getAssetType() {
+        return assetType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getExchange() {
+        return exchange;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public String getSector() {
+        return sector;
+    }
+
+    public String getIndustry() {
+        return industry;
+    }
+
+    public long getMarketCap() {
+        return marketCap;
+    }
+
+    public float getYearHigh() {
+        return yearHigh;
+    }
+
+    public float getYearLow() {
+        return yearLow;
+    }
+
+    public String getDividendDate() {
+        return dividendDate;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"Id\":" + Id +
+                ", \"symbol\":\"" + symbol + '"' +
+                ", \"assetType\":\"" + assetType + '"' +
+                ", \"name\":\"" + name + '"' +
+                ", \"exchange\":\"" + exchange + '"' +
+                ", \"currency\":\"" + currency + '"' +
+                ", \"country\":\"" + country + '"' +
+                ", \"sector\":\"" + sector + '"' +
+                ", \"industry\":\"" + industry + '"' +
+                ", \"marketCap\":" + marketCap +
+                ", \"yearHigh\":" + yearHigh +
+                ", \"yearLow\":" + yearLow +
+                ", \"dividendDate\":\"" + dividendDate + '"' +
+                '}';
+    }
 }
