@@ -1,0 +1,2 @@
+Goal for this project is to create spring-boot api which will receive request asking for overview information about
+public trade stock response with some information about the companies. taking the stock data and store in our database
