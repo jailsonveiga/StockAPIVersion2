@@ -18,30 +18,37 @@ public class OverviewController {
 
     private final String BASE_URL = "https://www.alphavantage.co/query?function=OVERVIEW";
 
+    //http://localhost:8080/api/overview/test
     @GetMapping("/test")
-    public ResponseEntity<?> testOverview (RestTemplate restTemplate) {
+    private ResponseEntity<?> testOverview (RestTemplate restTemplate) {
         try{
 
             String url = BASE_URL + "&symbol=IBM&apikey=demo";
 
-            String responseBody = restTemplate.getForObject(url, String.class);
+            String alphaVantageResponse = restTemplate.getForObject(url, String.class);
 
-            return ResponseEntity.ok(responseBody);
+            return ResponseEntity.ok(alphaVantageResponse);
 
         } catch (Exception e) {
+            System.out.println(e.getClass());
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 
+    //http://localhost:8080/api/overview/{symbol}
     @GetMapping("/{symbol}")
-    public ResponseEntity<?> dynamicOverview (RestTemplate restTemplate, @PathVariable String symbol) {
+    public ResponseEntity<?> getOverviewBySymbol (RestTemplate restTemplate, @PathVariable String symbol) {
         try{
 
-            String url = BASE_URL + "&symbol="+symbol+"&apikey="+env.getProperty("AV_API_KEY");
+            String apiKey = env.getProperty("AV_API_KEY");
 
-            String responseBody = restTemplate.getForObject(url, String.class);
+            String url = BASE_URL + "&symbol=" + symbol + "&apikey=" + apiKey;
 
-            return ResponseEntity.ok(responseBody);
+            System.out.println(url);
+
+            String alphaVantageResponse = restTemplate.getForObject(url, String.class);
+
+            return ResponseEntity.ok(alphaVantageResponse);
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
