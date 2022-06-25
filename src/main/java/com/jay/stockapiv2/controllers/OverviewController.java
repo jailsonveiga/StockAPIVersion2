@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -190,6 +191,54 @@ public class OverviewController {
             return ApiErrorHandling.genericApiError(e);
         }
     }
+
+    @GetMapping("/symbol/{symbol}")
+    private ResponseEntity<?> getOverviewBySymbol (@PathVariable String symbol) {
+        try {
+
+            Optional<Overview> foundOverview = overviewRepository.findBySymbol(symbol);
+
+            if (foundOverview.isEmpty()) {
+
+                ApiErrorHandling.throwErr(404, symbol + " did not match any overview");
+
+            }
+
+            return ResponseEntity.ok(foundOverview);
+
+        } catch (HttpClientErrorException e) {
+
+            return ApiErrorHandling.customApiError(e.getMessage(), e.getStatusCode().value());
+
+        } catch (Exception e) {
+            return ApiErrorHandling.genericApiError(e);
+        }
+    }
+
+    @GetMapping("/exchange/{exchange}")
+    private ResponseEntity<?> getOverviewByExchange (@PathVariable String exchange) {
+        try {
+
+            List<Overview> foundOverview = overviewRepository.findByExchange(exchange);
+
+            if (foundOverview.isEmpty()) {
+
+                ApiErrorHandling.throwErr(404, exchange + " did not match any overview");
+
+            }
+
+            return ResponseEntity.ok(foundOverview);
+
+        } catch (HttpClientErrorException e) {
+
+            return ApiErrorHandling.customApiError(e.getMessage(), e.getStatusCode().value());
+
+        } catch (Exception e) {
+            return ApiErrorHandling.genericApiError(e);
+        }
+    }
+
+
 
 
     //Delete All Overviews From SQL Database Return # of Delete Overviews
