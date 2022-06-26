@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/overview")
@@ -167,40 +167,29 @@ public class OverviewController {
        }
     }
 
-    //Get One Overview By ID From SQL Database Return Found Overview Or 404 If Not Found
-
-    @GetMapping("/id/{id}")
-    private ResponseEntity<?> getOverviewById (@PathVariable String id) {
+    @GetMapping("/{field}/{value}")
+    private ResponseEntity<?> getOverviewByField (@PathVariable String field, @PathVariable String value) {
         try {
 
-            Optional<Overview> foundOverview = overviewRepository.findById(Long.parseLong(id));
+            List<Overview> foundOverview = null;
 
-            if (foundOverview.isEmpty()) {
+            field = field.toLowerCase();
 
-                ApiErrorHandling.throwErr(404, id + " did not match any overview");
+            switch (field) {
+                case "id" -> foundOverview = overviewRepository.findById(Long.parseLong(value));
+                case "symbol" -> foundOverview = overviewRepository.findBySymbol(value);
+                case "sector" -> foundOverview = overviewRepository.findBySector(value);
+                case "name" -> foundOverview = overviewRepository.findByName(value);
+                case "currency" -> foundOverview = overviewRepository.findByCurrency(value);
+                case "country" -> foundOverview = overviewRepository.findByCountry(value);
+                case "exchange" -> foundOverview = overviewRepository.findByExchange(value);
+                case "marketcapgte" -> foundOverview = overviewRepository.findByMarketCapGreaterThanEqual(Long.parseLong(value));
+                case "marketcaplte" -> foundOverview = overviewRepository.findByMarketCapLessThanEqual(Long.parseLong(value));
+            };
 
-            }
+            if (foundOverview == null || foundOverview.isEmpty()) {
 
-            return ResponseEntity.ok(foundOverview);
-
-        } catch (NumberFormatException e) {
-
-            return ApiErrorHandling.customApiError("ID Must be a number: " + id, 400);
-
-        } catch (Exception e) {
-            return ApiErrorHandling.genericApiError(e);
-        }
-    }
-
-    @GetMapping("/symbol/{symbol}")
-    private ResponseEntity<?> getOverviewBySymbol (@PathVariable String symbol) {
-        try {
-
-            Optional<Overview> foundOverview = overviewRepository.findBySymbol(symbol);
-
-            if (foundOverview.isEmpty()) {
-
-                ApiErrorHandling.throwErr(404, symbol + " did not match any overview");
+                ApiErrorHandling.throwErr(404, field + " did not match any overview");
 
             }
 
@@ -210,20 +199,38 @@ public class OverviewController {
 
             return ApiErrorHandling.customApiError(e.getMessage(), e.getStatusCode().value());
 
-        } catch (Exception e) {
+        } catch (NumberFormatException e){
+
+            return ApiErrorHandling.customApiError("ID must be a number: " + field, 400);
+
+        }catch (Exception e) {
             return ApiErrorHandling.genericApiError(e);
         }
     }
 
-    @GetMapping("/exchange/{exchange}")
-    private ResponseEntity<?> getOverviewByExchange (@PathVariable String exchange) {
+    @DeleteMapping("/{field}/{value}")
+    private ResponseEntity<?> deleteOverviewByField (@PathVariable String field, @PathVariable String value) {
         try {
 
-            List<Overview> foundOverview = overviewRepository.findByExchange(exchange);
+            List<Overview> foundOverview = null;
 
-            if (foundOverview.isEmpty()) {
+            field = field.toLowerCase();
 
-                ApiErrorHandling.throwErr(404, exchange + " did not match any overview");
+            switch (field) {
+                case "id" -> foundOverview = overviewRepository.deleteById(Long.parseLong(value));
+                case "symbol" -> foundOverview = overviewRepository.deleteBySymbol(value);
+                case "sector" -> foundOverview = overviewRepository.deleteBySector(value);
+                case "name" -> foundOverview = overviewRepository.deleteByName(value);
+                case "currency" -> foundOverview = overviewRepository.deleteByCurrency(value);
+                case "country" -> foundOverview = overviewRepository.deleteByCountry(value);
+                case "exchange" -> foundOverview = overviewRepository.deleteByExchange(value);
+                case "marketcapgte" -> foundOverview = overviewRepository.deleteByMarketCapGreaterThanEqual(Long.parseLong(value));
+                case "marketcaplte" -> foundOverview = overviewRepository.deleteByMarketCapLessThanEqual(Long.parseLong(value));
+            };
+
+            if (foundOverview == null || foundOverview.isEmpty()) {
+
+                ApiErrorHandling.throwErr(404, field + " did not match any overview");
 
             }
 
@@ -233,13 +240,14 @@ public class OverviewController {
 
             return ApiErrorHandling.customApiError(e.getMessage(), e.getStatusCode().value());
 
-        } catch (Exception e) {
+        } catch (NumberFormatException e){
+
+            return ApiErrorHandling.customApiError("ID must be a number: " + field, 400);
+
+        }catch (Exception e) {
             return ApiErrorHandling.genericApiError(e);
         }
     }
-
-
-
 
     //Delete All Overviews From SQL Database Return # of Delete Overviews
     @DeleteMapping("/all")
@@ -270,7 +278,7 @@ public class OverviewController {
 
             long overviewId = Long.parseLong(id);
 
-            Optional<Overview> foundOverview = overviewRepository.findById(overviewId);
+            List<Overview> foundOverview = overviewRepository.findById(overviewId);
 
             if (foundOverview.isEmpty()) {
 
@@ -290,4 +298,46 @@ public class OverviewController {
             return ApiErrorHandling.genericApiError(e);
         }
     }
+
+    @PostMapping("/all")
+    private ResponseEntity<?> uploadTestOverviews (RestTemplate restTemplate) {
+        try{
+
+            String[] testSymbols = {"AAPL", "IBM", "TM", "ALL", "GS"};
+
+            ArrayList<Overview> overviews = new ArrayList<>();
+
+            for (int i = 0; i < testSymbols.length; i++) {
+
+                String symbol = testSymbols[i];
+
+                String apiKey = env.getProperty("AV_API_KEY");
+
+                String url = BASE_URL + "&symbol=" + symbol + "&apikey=" + apiKey;
+
+                Overview alphaVantageResponse = restTemplate.getForObject(url, Overview.class);
+
+                if (alphaVantageResponse == null) {
+                    ApiErrorHandling.throwErr(500, "Did not receive response from AV");
+                } else if (alphaVantageResponse.getSymbol() == null) {
+                    ApiErrorHandling.throwErr(404, "Invalid Stock Symbol: " + symbol);
+                }
+
+                overviews.add(alphaVantageResponse);
+            }
+
+            Iterable<Overview> savedOverview = overviewRepository.saveAll(overviews);
+
+            return ResponseEntity.ok(savedOverview );
+
+
+        }catch(DataIntegrityViolationException e) {
+
+            return ApiErrorHandling.customApiError("Can not upload duplicate Stock data", 500);
+
+        } catch (Exception e) {
+            return ApiErrorHandling.genericApiError(e);
+        }
+    }
+
 }
