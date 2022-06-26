@@ -1,5 +1,6 @@
 package com.jay.stockapiv2.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -9,7 +10,8 @@ public class Overview {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="id", nullable = false, unique = true)
-    private long Id;
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private long id;
 
     @JsonProperty("Symbol")
     @Column(name="symbol", nullable = false, unique = true)
@@ -60,7 +62,7 @@ public class Overview {
     private String dividendDate;
 
     public long getId() {
-        return Id;
+        return id;
     }
 
     public String getSymbol() {
@@ -114,7 +116,7 @@ public class Overview {
     @Override
     public String toString() {
         return "{" +
-                "\"Id\":" + Id +
+                "\"Id\":" + id +
                 ", \"symbol\":\"" + symbol + '"' +
                 ", \"assetType\":\"" + assetType + '"' +
                 ", \"name\":\"" + name + '"' +
